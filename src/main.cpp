@@ -25,7 +25,7 @@ void setup()
   Serial.begin(115200);
   setupWiFiAP();
   setupWebServer();
-  // P1_Serial.begin(115200, SERIAL_8N1, 16, 17); // Initialisiert die zweite serielle Schnittstelle an Pin 16 (Rx) und Pin 17 (Tx)
+  P1_Serial.begin(115200, SERIAL_8N1, 16, 17); // Initialisiert die zweite serielle Schnittstelle an Pin 16 (Rx) und Pin 17 (Tx)
 }
 
 void setupWiFiAP()
@@ -161,7 +161,7 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
   }
 }
 
-/*void P1Data()
+void P1Data()
 {
   char receivedChar = 0;
   char c = 0;
@@ -182,9 +182,13 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
       if (c == '\r') // Wenn das Zeichen ein Wagenrücklauf ist
       {
         p1_buffer[i] = 0; // Setzt das Ende des Puffers
-        if (client.connected())
+        if (!mqttclient.connected())
         {
-          client.publish("smartmeter/p1/data", p1_buffer);
+          mqttConnect(mqtt_server, mqtt_port, mqtt_user, mqtt_password);
+        }
+        if (mqttclient.connected())
+        {
+          mqttclient.publish("smartmeter/p1/data", p1_buffer);
         }
         i = 0; // Setzt den Pufferzähler zurück
       }
@@ -195,17 +199,18 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
       }
     }
   }
-}*/
+}
 
 void loop()
 {
   server.handleClient(); // Behandelt eingehende Anfragen an den Webserver
 
-  /*if (wifiClient.connected()) // Wenn eine Verbindung besteht
+  if (wifiClient.connected()) // Wenn eine Verbindung besteht
   {
     while (wifiClient.available()) // Wenn Daten verfügbar sind
     {
       Serial.write(wifiClient.read()); // Schreibt die empfangenen Daten auf die serielle Schnittstelle
     }
-  }*/
+  }
+  P1Data();
 }
