@@ -15,10 +15,12 @@ HardwareSerial P1_Serial(2); // Erstellt eine serielle Schnittstelle an Pin 2
 const int BUFFER_SIZE = 128; // Größe des seriellen Puffers
 char p1_buffer[BUFFER_SIZE]; // Erstellt einen Puffer für serielle Daten
 
+
 const char *mqtt_server = "";
 const int mqtt_port = 0;
 const char *mqtt_user = "";
 const char *mqtt_password = "";
+const char *mqttStatus = "";
 
 void setup()
 {
@@ -93,14 +95,14 @@ void handleConnect()
 void handleHTML()
 {
   String html = getHtmlContent();                     // Ruft den HTML-Inhalt der Webseite ab
+  html.replace("[[MQTT_STATUS]]", String(mqttStatus));
   server.send(200, "text/html; charset=utf-8", html); // Sendet die HTTP-Antwort mit dem HTML-Inhalt zurück
 }
 
 void handleRefresh()
 {
   server.sendHeader("Location", "/"); // Lädt die Root-Webseite nach dem Aktualisieren neu
-  server.send(302);
-  int num_networks = 0; // Anzahl der gefundenen WLAN-Netzwerke
+  server.send(302);  
 }
 
 void handle_mqtt()
@@ -129,6 +131,36 @@ void handle_mqtt()
   }
 }
 
+void mqttCallback(char *topic, byte *payload, unsigned int length)
+{
+  Serial.print("Nachricht empfangen auf Topic [");
+  Serial.print(topic);
+  Serial.print("]: ");
+
+  String message = "";
+  for (int i = 0; i < length; i++)
+  {
+    message += (char)payload[i];
+  }
+  Serial.println(message);
+
+  // Analysieren Sie die Nachricht und suchen Sie nach Fehlercodes oder Statusmeldungen
+  if (message.indexOf("ERROR") != -1 || message.indexOf("FEHLER") != -1)
+  {
+    Serial.println("Fehlermeldung empfangen:");
+    Serial.println(message);
+  }
+  else if (message.indexOf("WARN") != -1 || message.indexOf("WARNUNG") != -1)
+  {
+    Serial.println("Warnmeldung empfangen:");
+    Serial.println(message);
+  }
+  else
+  {
+    // Hier können Sie weitere Bedingungen hinzufügen, um auf bestimmte Nachrichteninhalte zu reagieren
+  }
+}
+
 void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, const char *mqtt_password)
 {
   Serial.println("Verbindung mit MQTT-Broker wird hergestellt...");
@@ -141,8 +173,10 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
     if (mqttclient.connect("ESP32Client", mqtt_user, mqtt_password))
     {
       Serial.println("Verbindung mit MQTT-Broker hergestellt.");
-      // Hier z.B. mqttclient.subscribe("smartmeter/p1/data"); // Abonniert das MQTT-Topic
-      server.send(200, "text/html", "MQTT-Verbindung wurde erfolgreich hergestellt.");
+      mqttclient.setCallback(mqttCallback); // Hier z.B. mqttclient.subscribe("smartmeter/p1/data"); // Abonniert das MQTT-Topic
+      mqttStatus = "MQTT-Verbindung wurde erfolgreich hergestellt.";
+      server.sendHeader("Location", "/");
+      server.send(302);
     }
     else
     {
@@ -196,7 +230,7 @@ void P1Data()
       {
         p1_buffer[i] = c; // Fügt das Zeichen dem Puffer hinzu
         i++;              // Erhöht den Pufferzähler
-      }
+      }      
     }
   }
 }
