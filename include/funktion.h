@@ -14,4 +14,3 @@ void handle_mqtt();
 // Globale Variablen
 WiFiClient wifiClient;
 PubSubClient mqttclient(wifiClient);
-

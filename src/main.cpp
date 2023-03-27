@@ -11,10 +11,11 @@ const char *password = "my_password";
 
 WebServer server(80);
 
+PubSubClient mqttClient(wifiClient);
+
 HardwareSerial P1_Serial(2); // Erstellt eine serielle Schnittstelle an Pin 2
 const int BUFFER_SIZE = 128; // Größe des seriellen Puffers
 char p1_buffer[BUFFER_SIZE]; // Erstellt einen Puffer für serielle Daten
-
 
 const char *mqtt_server = "";
 const int mqtt_port = 0;
@@ -94,7 +95,7 @@ void handleConnect()
 
 void handleHTML()
 {
-  String html = getHtmlContent();                     // Ruft den HTML-Inhalt der Webseite ab
+  String html = getHtmlContent(); // Ruft den HTML-Inhalt der Webseite ab
   html.replace("[[MQTT_STATUS]]", String(mqttStatus));
   server.send(200, "text/html; charset=utf-8", html); // Sendet die HTTP-Antwort mit dem HTML-Inhalt zurück
 }
@@ -102,7 +103,7 @@ void handleHTML()
 void handleRefresh()
 {
   server.sendHeader("Location", "/"); // Lädt die Root-Webseite nach dem Aktualisieren neu
-  server.send(302);  
+  server.send(302);
 }
 
 void handle_mqtt()
@@ -183,15 +184,17 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
       retries++;
       Serial.print("Verbindung fehlgeschlagen. RC=");
       Serial.print(mqttclient.state());
-      Serial.print(" Neuer Versuch in 5 Sekunden...");
-      delay(5000);
+      Serial.print(" Neuer Versuch in 3 Sekunden...");
+      delay(3000);
     }
   }
 
   if (!mqttclient.connected())
   {
     Serial.println("Verbindung mit MQTT-Broker konnte nicht hergestellt werden.");
-    server.send(400, "text/html", "MQTT-Verbindung konnte nicht hergestellt werden.");
+    mqttStatus = "Verbindung mit MQTT-Broker konnte nicht hergestellt werden.";
+    server.sendHeader("Location", "/");
+    server.send(302);
   }
 }
 
@@ -230,7 +233,7 @@ void P1Data()
       {
         p1_buffer[i] = c; // Fügt das Zeichen dem Puffer hinzu
         i++;              // Erhöht den Pufferzähler
-      }      
+      }
     }
   }
 }
