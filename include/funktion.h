@@ -1,5 +1,6 @@
 #ifndef D9F6C42B_4BB9_4233_856F_827EB894A056
 #define D9F6C42B_4BB9_4233_856F_827EB894A056
+#pragma once
 
 void handleRefresh(); // Funktionsdeklaration für das Aktualisieren von WLAN-Netzwerken
 void handleConnect(); // Funktionsdeklaration für die WiFi-Verbindung
