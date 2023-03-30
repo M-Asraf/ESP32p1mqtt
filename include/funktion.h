@@ -11,7 +11,3 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
 void handle_mqtt();
 
 #endif /* D9F6C42B_4BB9_4233_856F_827EB894A056 */
-
-// Globale Variablen
-WiFiClient wifiClient;
-PubSubClient mqttclient(wifiClient);
