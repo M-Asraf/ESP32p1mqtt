@@ -36,9 +36,11 @@ void setup()
 
 void setupWiFiAP()
 {
-  WiFi.softAP(ssid, password);                                                   // Initialisiert den WLAN-Access-Point mit dem angegebenen SSID und Passwort.
-  Serial.println("SSID:" + String(ssid));                                        // Gibt die SSID des WLAN-Access-Points über die serielle Schnittstelle aus.
-  Serial.println("Passwort:" + String(password));                                // Gibt das Passwort des WLAN-Access-Points über die serielle Schnittstelle aus.
+  Serial.println();
+  WiFi.softAP(ssid, password);                    // Initialisiert den WLAN-Access-Point mit dem angegebenen SSID und Passwort.
+  Serial.println("SSID:" + String(ssid));         // Gibt die SSID des WLAN-Access-Points über die serielle Schnittstelle aus.
+  Serial.println("Passwort:" + String(password)); // Gibt das Passwort des WLAN-Access-Points über die serielle Schnittstelle aus.
+  Serial.println();
   Serial.println("IP-Adresse des Access Points: " + WiFi.softAPIP().toString()); // Gibt die IP-Adresse des Access-Points über die serielle Schnittstelle aus.
   Serial.println("MAC-Adresse: " + WiFi.softAPmacAddress());                     // Gibt die MAC-Adresse des WLAN-Access-Points über die serielle Schnittstelle aus.
   Serial.println("Aktueller Kanal: " + String(WiFi.channel()));                  // Gibt den aktuellen Kanal des WLAN-Access-Points über die serielle Schnittstelle aus.
@@ -46,25 +48,26 @@ void setupWiFiAP()
 
 void setupWebServer()
 {
+  server.begin(); // Startet den Webserver
+  Serial.println();
+  Serial.println("Webserver gestartet"); // Gibt eine Bestätigungsmeldung über die serielle Schnittstelle aus.
+  Serial.println();
   server.on("/", handleHTML);                        // Weist die Root-Webseite der Handler-Funktion zu
   server.on("/connect", handleConnect);              // Weist die WiFi-Verbindungs-Webseite der Handler-Funktion zu
   server.on("/refresh", handleRefresh);              // Weist die WLAN-Netzwerk-Aktualisierungs-Webseite der Handler-Funktion zu
   server.on("/handle_mqtt", HTTP_POST, handle_mqtt); // Weist die MQTT-Handler-Funktion zu, die beim Empfangen eines POST-Requests ausgeführt wird
-  server.begin();                                    // Startet den Webserver
-  Serial.println("Webserver gestartet");             // Gibt eine Bestätigungsmeldung über die serielle Schnittstelle aus.
 }
 
 void handleConnect()
 {
   String ssid = server.arg("ssid");         // Liest den SSID-Parameter aus dem HTTP-Request
   String password = server.arg("password"); // Liest das Passwort-Parameter aus dem HTTP-Request
-  server.sendHeader("Location", "/");       // Leitet den Benutzer zurück zur Root-Webseite
-  server.send(302);                         // Sendet einen HTTP-302-Redirect an den Client
 
   if (ssid != "" && password != "") // Prüft, ob der SSID- und das Passwort-Felder ausgefüllt wurden
   {
     WiFi.softAPdisconnect(true);                  // Trennt die Verbindung zum Access Point
     Serial.println("Access Point wird getrennt"); // Gibt eine Statusmeldung über die serielle Schnittstelle aus
+    Serial.println();
 
     WiFi.begin(ssid.c_str(), password.c_str());                              // Stellt eine Verbindung zum angegebenen WLAN-Netzwerk her
     Serial.println("Verbindung mit: " + String(ssid) + " wird hergestellt"); // Gibt eine Statusmeldung über die serielle Schnittstelle aus
@@ -75,34 +78,32 @@ void handleConnect()
     {
       delay(1000);       // Verzögert die Ausführung des Codes für 1 Sekunde, um auf die Verbindung zum WLAN-Netzwerk zu warten
       Serial.print("."); // Gibt einen Punkt auf der seriellen Schnittstelle aus, um anzuzeigen, dass der Code noch ausgeführt wird
-      counter++;         // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
+      Serial.println();
+      counter++; // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
 
       if (counter >= 20) // Nach 20 Sekunden wird ein Fehler ausgegeben
       {
-        Serial.println("");                                             // Gibt eine leere Zeile auf der seriellen Schnittstelle aus, um den Fehler deutlicher zu machen
+        Serial.println("!!!");                                          // Gibt eine leere Zeile auf der seriellen Schnittstelle aus, um den Fehler deutlicher zu machen
         Serial.println("Fehler bei der Verbindung zum WLAN-Netzwerk."); // Gibt eine Fehlermeldung auf der seriellen Schnittstelle aus
         WiFi.disconnect();                                              // Trennt die Verbindung zum WLAN-Netzwerk
-        WiFi.softAP(ssid.c_str(), password.c_str());                    // Stellt den ESP32 wieder als Access Point ein
+        setupWiFiAP();                                                  // Stellt den ESP32 wieder als Access Point ein
         Serial.println("Access Point wurde erneut konfiguriert.");      // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus
         break;                                                          // Beendet die While-Schleife, da ein Fehler aufgetreten ist
       }
     }
 
-    if (WiFi.status() == WL_CONNECTED) // Wenn die Verbindung erfolgreich ist, werden Informationen ausgegeben
-    {
-      Serial.println("");                                         // Gibt eine leere Zeile auf der seriellen Schnittstelle aus, um den erfolgreichen Verbindungsaufbau deutlicher zu machen
-      Serial.println("Verbunden mit: " + String(ssid));           // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus, dass eine Verbindung zum WLAN-Netzwerk hergestellt wurde
-      Serial.println("IP-Adresse: " + WiFi.localIP().toString()); // Gibt die lokale IP-Adresse des ESP32 auf der seriellen Schnittstelle aus
-      Serial.println("MAC-Adresse: " + WiFi.macAddress());        // Gibt die MAC-Adresse des ESP32 auf der seriellen Schnittstelle aus
-    }
+    if (WiFi.status() == WL_CONNECTED)                          // Wenn die Verbindung erfolgreich ist, werden Informationen ausgegeben    {
+      Serial.println("Verbunden mit: " + String(ssid));         // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus, dass eine Verbindung zum WLAN-Netzwerk hergestellt wurde
+    Serial.println("IP-Adresse: " + WiFi.localIP().toString()); // Gibt die lokale IP-Adresse des ESP32 auf der seriellen Schnittstelle aus
+    Serial.println("MAC-Adresse: " + WiFi.macAddress());        // Gibt die MAC-Adresse des ESP32 auf der seriellen Schnittstelle aus
   }
 }
 
 void handleHTML()
 {
-  String html = getHtmlContent();                      // Ruft den HTML-Inhalt der Webseite ab
-  html.replace("[[MQTT_STATUS]]", String(mqttStatus)); // Ersetzt die Platzhalter-Tags im HTML-Code durch den aktuellen MQTT-Status
-  server.send(200, "text/html; charset=utf-8", html);  // Sendet die HTTP-Antwort mit dem HTML-Inhalt zurück
+  String html = getHtmlContent();                     // Ruft den HTML-Inhalt der Webseite ab
+  server.send(200, "text/html; charset=utf-8", html); // Sendet die HTTP-Antwort mit dem HTML-Inhalt zurück
+  mqttStatus;
 }
 
 void handleRefresh()
@@ -127,7 +128,7 @@ void handle_mqtt()
     }
     else // Wenn Formularfelder fehlen, wird eine Fehlermeldung an den Client gesendet
     {
-      server.send(400, "text/html", "Fehlende Formulardaten. Stellen Sie sicher, dass alle erforderlichen Felder ausgefüllt sind."); // Sendet eine HTTP-400-Bad-Request-Antwort mit einer Fehlermeldung an den Client
+      server.send(400, "text/html", "Fehlende Formulardaten."); // Sendet eine HTTP-400-Bad-Request-Antwort mit einer Fehlermeldung an den Client
     }
   }
   else // Wenn die Anfrage keine HTTP-POST-Anfrage ist, wird eine Fehlermeldung an den Client gesendet
@@ -253,5 +254,6 @@ void loop()
       Serial.write(wifiClient.read()); // Schreibt die empfangenen Daten auf die serielle Schnittstelle
     }
   }
+
   P1Data(); // Aufruf der Funktion
 }
