@@ -12,8 +12,8 @@ const char *password = "my_password";
 
 WebServer server(80); // Erstellt eine Instanz der WebServer-Klasse, die auf Port 80 lauscht.
 
-WiFiClient wifiClient;               // Erstellt eine Instanz der WiFiClient-Klasse für die WLAN-Kommunikation.
-PubSubClient mqttclient(wifiClient); // Erstellt eine Instanz der PubSubClient-Klasse für die MQTT-Kommunikation, die die wifiClient-Instanz verwendet.
+WiFiClient wifiClientESP32;               // Erstellt eine Instanz der WiFiClient-Klasse für die WLAN-Kommunikation.
+PubSubClient mqttclient(wifiClientESP32); // Erstellt eine Instanz der PubSubClient-Klasse für die MQTT-Kommunikation, die die wifiClient-Instanz verwendet.
 
 HardwareSerial P1_Serial(2); // Erstellt eine serielle Schnittstelle an Pin 2
 const int BUFFER_SIZE = 128; // Größe des seriellen Puffers
@@ -23,8 +23,6 @@ const char *mqtt_server = "";   // Die Adresse des MQTT-Brokers, zu dem eine Ver
 const int mqtt_port = 0;        // Der Port, über den die Verbindung zum MQTT-Broker hergestellt wird.
 const char *mqtt_user = "";     // Der Benutzername, der zur Authentifizierung bei Verbindung zum MQTT-Broker verwendet wird.
 const char *mqtt_password = ""; // Das Passwort, das zur Authentifizierung bei Verbindung zum MQTT-Broker verwendet wird.
-
-const char *mqttStatus = ""; // Eine Zeichenfolge zur Speicherung des Verbindungszustands zum MQTT-Broker.
 
 void setup()
 {
@@ -54,7 +52,6 @@ void setupWebServer()
   Serial.println();
   server.on("/", handleHTML);                        // Weist die Root-Webseite der Handler-Funktion zu
   server.on("/connect", handleConnect);              // Weist die WiFi-Verbindungs-Webseite der Handler-Funktion zu
-  server.on("/refresh", handleRefresh);              // Weist die WLAN-Netzwerk-Aktualisierungs-Webseite der Handler-Funktion zu
   server.on("/handle_mqtt", HTTP_POST, handle_mqtt); // Weist die MQTT-Handler-Funktion zu, die beim Empfangen eines POST-Requests ausgeführt wird
 }
 
@@ -62,6 +59,9 @@ void handleConnect()
 {
   String ssid = server.arg("ssid");         // Liest den SSID-Parameter aus dem HTTP-Request
   String password = server.arg("password"); // Liest das Passwort-Parameter aus dem HTTP-Request
+
+  WiFi.begin(ssid.c_str(), password.c_str());                              // Stellt eine Verbindung zum angegebenen WLAN-Netzwerk her
+  Serial.println("Verbindung mit: " + String(ssid) + " wird hergestellt"); // Gibt eine Statusmeldung über die serielle Schnittstelle aus
 
   if (ssid != "" && password != "") // Prüft, ob der SSID- und das Passwort-Felder ausgefüllt wurden
   {
@@ -95,15 +95,15 @@ void handleConnect()
     if (WiFi.status() == WL_CONNECTED)                          // Wenn die Verbindung erfolgreich ist, werden Informationen ausgegeben    {
       Serial.println("Verbunden mit: " + String(ssid));         // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus, dass eine Verbindung zum WLAN-Netzwerk hergestellt wurde
     Serial.println("IP-Adresse: " + WiFi.localIP().toString()); // Gibt die lokale IP-Adresse des ESP32 auf der seriellen Schnittstelle aus
-    Serial.println("MAC-Adresse: " + WiFi.macAddress());        // Gibt die MAC-Adresse des ESP32 auf der seriellen Schnittstelle aus
+    Serial.println("MAC-Adresse: " + WiFi.macAddress());        // Gibt die MAC-A
   }
 }
 
 void handleHTML()
 {
-  String html = getHtmlContent();                     // Ruft den HTML-Inhalt der Webseite ab
+  String html = getHtmlContent(mqttclient);           // Ruft den HTML-Inhalt der Webseite ab
   server.send(200, "text/html; charset=utf-8", html); // Sendet die HTTP-Antwort mit dem HTML-Inhalt zurück
-  mqttStatus;
+  server.on("/refresh", handleRefresh);               // Weist die WLAN-Netzwerk-Aktualisierungs-Webseite der Handler-Funktion zu
 }
 
 void handleRefresh()
@@ -176,30 +176,20 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
   int retries = 0;
   while (!mqttclient.connected() && retries < 3) // Versucht, eine Verbindung zum MQTT-Broker herzustellen
   {
-    if (mqttclient.connect("ESP32Client", mqtt_user, mqtt_password)) // Verbindet den MQTT-Client mit dem Broker
+    if (mqttclient.connect("ESP32AsrafClient", mqtt_user, mqtt_password)) // Verbindet den MQTT-Client mit dem Broker
     {
-      Serial.println("Verbindung mit MQTT-Broker hergestellt.");     // Gibt eine Nachricht auf der Konsole aus, dass die Verbindung zum Broker erfolgreich hergestellt wurde
-      mqttclient.setCallback(mqttCallback);                          // Setzt die Callback-Funktion, die aufgerufen wird, wenn eine Nachricht empfangen wird
-      mqttStatus = "MQTT-Verbindung wurde erfolgreich hergestellt."; // Setzt den MQTT-Status auf "verbunden"
-      server.sendHeader("Location", "/");                            // Leitet den Benutzer zurück zur Root-Webseite
-      server.send(302);                                              // Sendet einen HTTP-302-Redirect an den Client
+      Serial.println("Verbindung mit MQTT-Broker hergestellt."); // Gibt eine Nachricht auf der Konsole aus, dass die Verbindung zum Broker erfolgreich hergestellt wurde
+      server.sendHeader("Location", "/");                        // Leitet den Benutzer zurück zur Root-Webseite
+      server.send(302);                                          // Sendet einen HTTP-302-Redirect an den Client
+      mqttclient.setCallback(mqttCallback);                      // Setzt die Callback-Funktion, die aufgerufen wird, wenn eine Nachricht empfangen wird
     }
     else
     {
-      retries++;                                       // Erhöht die Anzahl der Verbindungsversuche um 1
-      Serial.print("Verbindung fehlgeschlagen. RC=");  // Gibt eine Nachricht auf der Konsole aus, dass die Verbindung fehlgeschlagen ist und gibt den Rückgabewert der MQTT-Verbindungsstatus-Methode aus
-      Serial.print(mqttclient.state());                // Gibt den Rückgabewert der MQTT-Verbindungsstatus-Methode auf der Konsole aus
-      Serial.print(" Neuer Versuch in 3 Sekunden..."); // Gibt eine Nachricht auf der Konsole aus, dass in 3 Sekunden ein neuer Verbindungsversuch unternommen wird
-      delay(3000);                                     // Wartet 3 Sekunden, bevor ein neuer Verbindungsversuch unternommen wird
+      Serial.print("Verbindung fehlgeschlagen. RC="); // Gibt eine Nachricht auf der Konsole aus, dass die Verbindung fehlgeschlagen ist und gibt den Rückgabewert der MQTT-Verbindungsstatus-Methode aus
+      Serial.print(mqttclient.state());               // Gibt den Rückgabewert der MQTT-Verbindungsstatus-Methode auf der Konsole aus
+      server.sendHeader("Location", "/");             // Leitet den Benutzer zurück zur Root-Webseite
+      server.send(302);                               // Sendet einen HTTP-302-Redirect an den Client
     }
-  }
-
-  if (!mqttclient.connected()) // Überprüft, ob eine Verbindung zum MQTT-Broker hergestellt werden konnte
-  {
-    Serial.println("Verbindung mit MQTT-Broker konnte nicht hergestellt werden."); // Gibt eine Nachricht auf der Konsole aus, dass die Verbindung zum MQTT-Broker fehlgeschlagen ist
-    mqttStatus = "Verbindung mit MQTT-Broker konnte nicht hergestellt werden.";    // Setzt den MQTT-Status auf "nicht verbunden"
-    server.sendHeader("Location", "/");                                            // Leitet den Benutzer zurück zur Root-Webseite
-    server.send(302);                                                              // Sendet einen HTTP-302-Redirect an den Client
   }
 }
 
@@ -247,13 +237,14 @@ void loop()
 {
   server.handleClient(); // Behandelt eingehende Anfragen an den Webserver
 
-  if (wifiClient.connected()) // Wenn eine Verbindung besteht
+  if (wifiClientESP32.connected()) // Wenn eine Verbindung besteht
   {
-    while (wifiClient.available()) // Wenn Daten verfügbar sind
+    while (wifiClientESP32.available()) // Wenn Daten verfügbar sind
     {
-      Serial.write(wifiClient.read()); // Schreibt die empfangenen Daten auf die serielle Schnittstelle
+      Serial.write(wifiClientESP32.read()); // Schreibt die empfangenen Daten auf die serielle Schnittstelle
     }
   }
+  mqttclient.loop();
 
   P1Data(); // Aufruf der Funktion
 }

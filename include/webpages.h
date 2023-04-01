@@ -1,7 +1,7 @@
 #ifndef F82BEDC2_2A77_4D15_8B16_3DC3BB5F5390
 #define F82BEDC2_2A77_4D15_8B16_3DC3BB5F5390
 
-const char ROOT_HTML[] PROGMEM = R"rawliteral(
+const char ROOT_HTML[] = R"rawliteral(
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,11 +14,11 @@ const char ROOT_HTML[] PROGMEM = R"rawliteral(
 <h2 style="color: #555555;">ESP32-DevKitC, Wroom-32U</h2>
 )rawliteral";
 
-String getHtmlContent()
+String getHtmlContent(PubSubClient &mqttclient)
 {
     String html;
     html.reserve(2048);
-    html = String(ROOT_HTML);
+    html = FPSTR(ROOT_HTML);
 
     if (WiFi.softAPgetStationNum() > 0)
     {
@@ -62,26 +62,25 @@ String getHtmlContent()
             html.concat(F("Port: <br><input type=\"number\" name=\"mqttPort\" style=\"margin-bottom: 10px;\"> <br>"));
             html.concat(F("Benutzername: <br><input type=\"text\" name=\"mqttUsername\" style=\"margin-bottom: 10px;\"> <br>"));
             html.concat(F("Passwort: <br><input type=\"password\" name=\"mqttPassword\" style=\"margin-bottom: 10px;\"> <br>"));
-            html.concat(F("<input type=\"submit\" value=\"Verbinden\" style=\"background-color: red; border: none; color: white; padding: 10px 20px;\">"));
+            html.concat(F("<input type=\"submit\" value=\"Verbinden\" style=\"background-color: blue; border: none; color: white; padding: 10px 20px;\">"));
             html.concat("</form>");
             html.concat("</td>");
             html.concat("</tr>");
             html.concat("</table>");
-            html.concat("</body>");
-            html.concat("</html>");
 
-            html.concat("</head>");
-            html.concat("<body>");
-            html.concat(F("<h3>MQTT-Status</h3>"));
-            html.concat("<div style='border: none; background-color: white; padding: 10px; display: inline-block;'>");
-            html.concat(F("<p style=' padding: 5px; margin: 0; color: red; display: inline-block;'>[[MQTT_STATUS]]</p>"));
-            html.concat("</div>");
-            html.concat("</body>");
-            html.concat("</html>");
+            html.concat("<h3>MQTT-Status: <span style='color: ");
+            if (mqttclient.connected())
+            {
+                html.concat("green;'>verbunden</span></h3>");
+            }
+            else
+            {
+                html.concat("red;'>nicht verbunden!</span></h3>");
+            }
         }
         else
         {
-            html.concat(F("<p>Nicht mit einem Netzwerk verbunden</p>"));
+            html.concat(F("<p>Nicht mit einem Netzwerk verbunden!</p>"));
         }
     }
 
@@ -111,12 +110,14 @@ String getHtmlContent()
         html.concat("<label for=\"password\">Passwort:</label><br>");
         html.concat(F("<input type=\"password\" id=\"password\" name=\"password\" style=\"margin-bottom: 10px;\"><br>"));
 
-        html.concat(F("<input type=\"submit\" value=\"Verbinden\" style=\"background-color: red; border: none; color: white; padding: 10px 20px;\">"));
+        html.concat(F("<input type=\"submit\" value=\"Verbinden\" style=\"background-color: blue; border: none; color: white; padding: 10px 20px;\">"));
         html.concat("&nbsp;&nbsp;&nbsp");
         html.concat("<form action=\"/refresh\">");
-        html.concat(F("<input type=\"submit\" value=\"Aktualisieren\" style =\"background-color: red; border: none; color: white; padding: 10px 20px;\"><br>"));
+        html.concat(F("<input type=\"submit\" value=\"Aktualisieren\" style =\"background-color: blue; border: none; color: white; padding: 10px 20px;\"><br>"));
         html.concat("</form>");
         html.concat("<br><br>");
+        html.concat("</body>");
+        html.concat("</html>");
     }
     return html;
 }
