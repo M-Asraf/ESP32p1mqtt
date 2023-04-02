@@ -77,24 +77,28 @@ void handleConnect()
     while (WiFi.status() != WL_CONNECTED) // Wartet auf eine Verbindung zum WLAN-Netzwerk
     {
       delay(1000);       // Verzögert die Ausführung des Codes für 1 Sekunde, um auf die Verbindung zum WLAN-Netzwerk zu warten
-      Serial.print("."); // Gibt einen Punkt auf der seriellen Schnittstelle aus, um anzuzeigen, dass der Code noch ausgeführt wird
+      Serial.println("."); // Gibt einen Punkt auf der seriellen Schnittstelle aus, um anzuzeigen, dass der Code noch ausgeführt wird
       counter++;         // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
-
       if (counter >= 20) // Nach 20 Sekunden wird ein Fehler ausgegeben
       {
-        Serial.println("!!!");                                          // Gibt eine leere Zeile auf der seriellen Schnittstelle aus, um den Fehler deutlicher zu machen
         Serial.println("Fehler bei der Verbindung zum WLAN-Netzwerk."); // Gibt eine Fehlermeldung auf der seriellen Schnittstelle aus
         WiFi.disconnect();                                              // Trennt die Verbindung zum WLAN-Netzwerk
-        setupWiFiAP();                                                  // Stellt den ESP32 wieder als Access Point ein
-        Serial.println("Access Point wurde erneut konfiguriert.");      // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus
         break;                                                          // Beendet die While-Schleife, da ein Fehler aufgetreten ist
       }
     }
 
-    if (WiFi.status() == WL_CONNECTED)                          // Wenn die Verbindung erfolgreich ist, werden Informationen ausgegeben    {
-      Serial.println("Verbunden mit: " + String(ssid));         // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus, dass eine Verbindung zum WLAN-Netzwerk hergestellt wurde
-    Serial.println("IP-Adresse: " + WiFi.localIP().toString()); // Gibt die lokale IP-Adresse des ESP32 auf der seriellen Schnittstelle aus
-    Serial.println("MAC-Adresse: " + WiFi.macAddress());        // Gibt die MAC-A
+    if (counter >= 20) // Überprüft, ob die Schleife aufgrund eines Fehlers beendet wurde
+    {
+      setupWiFiAP();                                             // Stellt den ESP32 wieder als Access Point ein
+      Serial.println("Access Point wurde erneut konfiguriert."); // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus
+    }
+
+    if (WiFi.status() == WL_CONNECTED) // Wenn die Verbindung erfolgreich ist, werden Informationen ausgegeben
+    {
+      Serial.println("Verbunden mit: " + String(ssid));           // Gibt eine Statusmeldung auf der seriellen Schnittstelle aus, dass eine Verbindung zum WLAN-Netzwerk hergestellt wurde
+      Serial.println("IP-Adresse: " + WiFi.localIP().toString()); // Gibt die lokale IP-Adresse des ESP32 auf der seriellen Schnittstelle aus
+      Serial.println("MAC-Adresse: " + WiFi.macAddress());        // Gibt die MAC-A
+    }
   }
 }
 
@@ -108,7 +112,7 @@ void handleHTML()
 void handleRefresh()
 {
   server.sendHeader("Location", "/"); // Lädt die Root-Webseite nach dem Aktualisieren neu
-  server.send(302);                   // Sendet einen HTTP-302-Redirect-Statuscode an den Client, um ihn auf eine andere Webseite weiterzuleiten
+  server.send(303);                   // Sendet einen HTTP-302-Redirect-Statuscode an den Client, um ihn auf eine andere Webseite weiterzuleiten
 }
 
 void handle_mqtt()
@@ -188,6 +192,7 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
       Serial.print(mqttclient.state());               // Gibt den Rückgabewert der MQTT-Verbindungsstatus-Methode auf der Konsole aus
       server.sendHeader("Location", "/");             // Leitet den Benutzer zurück zur Root-Webseite
       server.send(302);                               // Sendet einen HTTP-302-Redirect an den Client
+      break;
     }
   }
 }
