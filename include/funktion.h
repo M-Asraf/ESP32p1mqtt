@@ -1,5 +1,3 @@
-#ifndef D9F6C42B_4BB9_4233_856F_827EB894A056
-#define D9F6C42B_4BB9_4233_856F_827EB894A056
 #pragma once
 
 void handleRefresh(); // Funktionsdeklaration für das Aktualisieren von WLAN-Netzwerken
@@ -9,5 +7,3 @@ void setupWiFiAP();
 void setupWebServer();
 void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, const char *mqtt_password);
 void handle_mqtt();
-
-#endif /* D9F6C42B_4BB9_4233_856F_827EB894A056 */

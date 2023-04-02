@@ -78,8 +78,7 @@ void handleConnect()
     {
       delay(1000);       // Verzögert die Ausführung des Codes für 1 Sekunde, um auf die Verbindung zum WLAN-Netzwerk zu warten
       Serial.print("."); // Gibt einen Punkt auf der seriellen Schnittstelle aus, um anzuzeigen, dass der Code noch ausgeführt wird
-      Serial.println();
-      counter++; // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
+      counter++;         // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
 
       if (counter >= 20) // Nach 20 Sekunden wird ein Fehler ausgegeben
       {
@@ -179,9 +178,9 @@ void mqttConnect(const char *mqtt_server, int mqtt_port, const char *mqtt_user, 
     if (mqttclient.connect("ESP32AsrafClient", mqtt_user, mqtt_password)) // Verbindet den MQTT-Client mit dem Broker
     {
       Serial.println("Verbindung mit MQTT-Broker hergestellt."); // Gibt eine Nachricht auf der Konsole aus, dass die Verbindung zum Broker erfolgreich hergestellt wurde
+      mqttclient.setCallback(mqttCallback);                      // Setzt die Callback-Funktion, die aufgerufen wird, wenn eine Nachricht empfangen wird
       server.sendHeader("Location", "/");                        // Leitet den Benutzer zurück zur Root-Webseite
       server.send(302);                                          // Sendet einen HTTP-302-Redirect an den Client
-      mqttclient.setCallback(mqttCallback);                      // Setzt die Callback-Funktion, die aufgerufen wird, wenn eine Nachricht empfangen wird
     }
     else
     {
@@ -244,6 +243,7 @@ void loop()
       Serial.write(wifiClientESP32.read()); // Schreibt die empfangenen Daten auf die serielle Schnittstelle
     }
   }
+
   mqttclient.loop();
 
   P1Data(); // Aufruf der Funktion

@@ -1,5 +1,4 @@
-#ifndef F82BEDC2_2A77_4D15_8B16_3DC3BB5F5390
-#define F82BEDC2_2A77_4D15_8B16_3DC3BB5F5390
+#pragma once
 
 const char ROOT_HTML[] = R"rawliteral(
 <!DOCTYPE html>
@@ -71,7 +70,7 @@ String getHtmlContent(PubSubClient &mqttclient)
             html.concat("<h3>MQTT-Status: <span style='color: ");
             if (mqttclient.connected())
             {
-                html.concat("green;'>verbunden</span></h3>");
+                html.concat("green;'>verbunden!</span></h3>");
             }
             else
             {
@@ -118,8 +117,12 @@ String getHtmlContent(PubSubClient &mqttclient)
         html.concat("<br><br>");
         html.concat("</body>");
         html.concat("</html>");
+
+        html.concat(F("<footer>"));
+        html.concat(F("<p>&copy; 2023 - ESP32Asraf</p>"));
+        html.concat(F("</footer>"));
+        html.concat(F("</body>"));
+        html.concat(F("</html>"));
     }
     return html;
 }
-
-#endif /* F82BEDC2_2A77_4D15_8B16_3DC3BB5F5390 */
