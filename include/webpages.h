@@ -73,11 +73,11 @@ String getHtmlContent(PubSubClient &mqttclient)
             else
             {
                 html.concat("red;'>nicht verbunden!</span></h3>");
-            }           
+            }
         }
     }
     // WLAN-Netzwerk werden gesucht und als Dropdown angezeigt
-    html.concat(F("<h3>Verfügbare WLAN-Netzwerke</h3>"));   
+    html.concat(F("<h3>Verfügbare WLAN-Netzwerke</h3>"));
     int num_networks = WiFi.scanNetworks();
     if (num_networks == 0)
     {

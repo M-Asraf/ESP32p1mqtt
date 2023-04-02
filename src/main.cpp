@@ -76,10 +76,10 @@ void handleConnect()
 
     while (WiFi.status() != WL_CONNECTED) // Wartet auf eine Verbindung zum WLAN-Netzwerk
     {
-      delay(1000);       // Verzögert die Ausführung des Codes für 1 Sekunde, um auf die Verbindung zum WLAN-Netzwerk zu warten
+      delay(1000);         // Verzögert die Ausführung des Codes für 1 Sekunde, um auf die Verbindung zum WLAN-Netzwerk zu warten
       Serial.println("."); // Gibt einen Punkt auf der seriellen Schnittstelle aus, um anzuzeigen, dass der Code noch ausgeführt wird
-      counter++;         // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
-      if (counter >= 20) // Nach 20 Sekunden wird ein Fehler ausgegeben
+      counter++;           // Erhöht den Zähler für die Anzahl der Versuche, eine Verbindung zum WLAN-Netzwerk herzustellen
+      if (counter >= 20)   // Nach 20 Sekunden wird ein Fehler ausgegeben
       {
         Serial.println("Fehler bei der Verbindung zum WLAN-Netzwerk."); // Gibt eine Fehlermeldung auf der seriellen Schnittstelle aus
         WiFi.disconnect();                                              // Trennt die Verbindung zum WLAN-Netzwerk
