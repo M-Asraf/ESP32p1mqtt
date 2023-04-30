@@ -5,15 +5,13 @@
 #include <WiFiClient.h>
 #include <funktion.h>
 #include <webpages.h>
+#include <P1Data.h>
 
 // Globale Variablen
 const char *ssid = "MY_ESP32_AP";
 const char *password = "my_password";
 
 WebServer server(80); // Erstellt eine Instanz der WebServer-Klasse, die auf Port 80 lauscht.
-
-WiFiClient wifiClientESP32;               // Erstellt eine Instanz der WiFiClient-Klasse für die WLAN-Kommunikation.
-PubSubClient mqttclient(wifiClientESP32); // Erstellt eine Instanz der PubSubClient-Klasse für die MQTT-Kommunikation, die die wifiClient-Instanz verwendet.
 
 HardwareSerial P1_Serial(2); // Erstellt eine serielle Schnittstelle an Pin 2
 const int BUFFER_SIZE = 128; // Größe des seriellen Puffers

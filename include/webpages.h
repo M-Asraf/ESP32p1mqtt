@@ -76,6 +76,7 @@ String getHtmlContent(PubSubClient &mqttclient)
             }
         }
     }
+
     // WLAN-Netzwerk werden gesucht und als Dropdown angezeigt
     html.concat(F("<h3>Verfügbare WLAN-Netzwerke</h3>"));
     int num_networks = WiFi.scanNetworks();
@@ -110,6 +111,7 @@ String getHtmlContent(PubSubClient &mqttclient)
         html.concat("</form>");
         html.concat("<br><br>");
     }
+    //===================================================================================================================================================
     html.concat(F("<footer>"));
     html.concat(F("<h5><p>&copy; 2023 - ESP32-Asraf</p></h5>"));
     html.concat(F("</footer>"));
