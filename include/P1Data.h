@@ -58,10 +58,14 @@ int get_data_type(String p1_data)
         return 0; // Keine bekannte P1-Datenart
     }
 }
+
 String mqtt_topic; // Variablendeklaration vor der switch-Anweisung
 String mqtt_payload;
-void switch_p1_data(String p1_data){
-    switch (get_data_type(p1_data)){
+
+void switch_p1_data(String p1_data)
+{
+    switch (get_data_type(p1_data))
+    {
     case 1: // Aktueller Verbrauch
         aktueller_verbrauch = extract_value(p1_data);
          mqtt_topic = "/stromzaehler/aktuellerverbrauch";

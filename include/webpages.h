@@ -54,6 +54,7 @@ String getHtmlContent(PubSubClient &mqttclient)
             html.concat(F("<h5 style='margin-bottom: 0px; line-height: 0;'><b>Kanal:</b> "));
             html.concat((WiFi.channel()));
             html.concat("</h5>");
+
             // MQTT-Verbindungsformular
             html.concat(F("<h3>MQTT-Verbindung</h3>"));
             html.concat("<form method=\"post\" action=\"/handle_mqtt\">");
@@ -61,9 +62,11 @@ String getHtmlContent(PubSubClient &mqttclient)
             html.concat(F("Port: <br><input type=\"number\" name=\"mqttPort\" style=\"margin-bottom: 10px;\" required> <br>"));
             html.concat(F("Benutzername: <br><input type=\"text\" name=\"mqttUsername\" style=\"margin-bottom: 10px;\"> <br>"));
             html.concat(F("Passwort: <br><input type=\"password\" name=\"mqttPassword\" style=\"margin-bottom: 10px;\"> <br>"));
+
             // Füge den "Verbinden"-Button hinzu
             html.concat(F("<input type=\"submit\" value=\"Verbinden\" style=\"background-color: blue; border: none; color: white; padding: 10px 20px;\">"));
             html.concat("</form>");
+
             // MQTT-Status Meldung
             html.concat("<h3>MQTT-Status: <span style='color: ");
             if (mqttclient.connected())
@@ -111,7 +114,7 @@ String getHtmlContent(PubSubClient &mqttclient)
         html.concat("</form>");
         html.concat("<br><br>");
     }
-    //===================================================================================================================================================
+    
     html.concat(F("<footer>"));
     html.concat(F("<h5><p>&copy; 2023 - ESP32-Asraf</p></h5>"));
     html.concat(F("</footer>"));
